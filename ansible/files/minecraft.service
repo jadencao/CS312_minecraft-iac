@@ -1,0 +1,43 @@
+# ----------------------------------------------------------------------------
+# minecraft.service — systemd unit that manages the Minecraft server.
+# Installed to /etc/systemd/system/ by the Ansible playbook.
+#
+# Fixes the previous sysadmin's two problems:
+#   1. Auto-start on boot: [Install] WantedBy=multi-user.target
+#   2. Clean shutdown: ExecStop runs stop.sh, which saves the world
+# ----------------------------------------------------------------------------
+
+[Unit]
+Description=Minecraft Java Server
+# Don't start until the network is actually up, the server binds to a port.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Run as the unprivileged ubuntu user, never as root.
+User=ubuntu
+WorkingDirectory=/opt/minecraft
+
+# Start the server session named "minecraft".
+#   -D -m  -> keep screen in the foreground so systemd can track the process
+#   -S     -> name the session, so stop.sh can find it later
+# Running inside screen gives us a "keyboard" into the server console, which
+# is what makes the graceful stop possible.
+# -Xmx/-Xms set max/min Java memory: 2 GB of the t2.medium's 4 GB.
+ExecStart=/usr/bin/screen -DmS minecraft /usr/bin/java -Xmx2048M -Xms2048M -jar server.jar nogui
+
+# On "systemctl stop" or shutdown/reboot, run our script that types "stop"
+# into the server console — the server saves all worlds and exits cleanly.
+ExecStop=/opt/minecraft/stop.sh
+# Give the world-save up to 90 seconds before systemd would force-kill.
+TimeoutStopSec=90
+
+# If the server CRASHES, restart it after 5 seconds.
+# A clean "stop" is not a failure, so it won't fight ExecStop.
+Restart=on-failure
+RestartSec=5
+
+[Install]
+# Start this service automatically when the machine reaches normal
+# multi-user boot, auto-start on every reboot.
+WantedBy=multi-user.target

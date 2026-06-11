@@ -1,0 +1,18 @@
+.DS_Store
+
+# Terraform internals — local state and downloaded providers, never committed
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+
+# Secrets — private SSH keys must never reach a public repo
+*.pem
+*.key
+
+# Generated at deploy time by Terraform (contains a machine-specific IP)
+inventory.ini
+
+# Ansible retry files
+*.retry

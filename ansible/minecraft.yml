@@ -1,0 +1,85 @@
+---
+# ----------------------------------------------------------------------------
+# minecraft.yml — Ansible playbook that turns a blank Ubuntu EC2 instance
+# into a fully working Minecraft server managed by systemd.
+#
+# each task describes a desired state
+# ("this package is installed", "this file exists with this content").
+# First run: changed=8 (it does the work). Second run: changed=0 (nothing to fix).
+# ----------------------------------------------------------------------------
+
+- name: Configure Minecraft server
+  hosts: minecraft
+  become: true
+
+  vars:
+    minecraft_dir: /opt/minecraft
+    server_jar_url: "https://piston-data.mojang.com/v1/objects/97ccd4c0ed3f81bbb7bfacddd1090b0c56f9bc51/server.jar"
+
+  tasks:
+    - name: Install Java 25 and screen
+      ansible.builtin.apt:
+        name:
+          - openjdk-25-jre-headless
+          - screen
+        state: present
+        update_cache: true
+
+    - name: Create Minecraft server directory
+      ansible.builtin.file:
+        path: "{{ minecraft_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Download Minecraft server jar
+      ansible.builtin.get_url:
+        url: "{{ server_jar_url }}"
+        dest: "{{ minecraft_dir }}/server.jar"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+
+    - name: Accept the Minecraft EULA
+      ansible.builtin.copy:
+        content: "eula=true\n"
+        dest: "{{ minecraft_dir }}/eula.txt"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+
+    - name: Deploy server.properties
+      ansible.builtin.copy:
+        src: server.properties
+        dest: "{{ minecraft_dir }}/server.properties"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+        force: false
+
+    - name: Deploy graceful stop script
+      ansible.builtin.copy:
+        src: stop.sh
+        dest: "{{ minecraft_dir }}/stop.sh"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Install systemd service
+      ansible.builtin.copy:
+        src: minecraft.service
+        dest: /etc/systemd/system/minecraft.service
+        mode: "0644"
+
+    - name: Enable and start the Minecraft service
+      ansible.builtin.systemd:
+        name: minecraft
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Wait for Minecraft to listen on port 25565
+      ansible.builtin.wait_for:
+        port: 25565
+        timeout: 300
