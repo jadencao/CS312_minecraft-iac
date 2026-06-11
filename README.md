@@ -3,8 +3,8 @@
 Fully automated configuration, and deployment of a Minecraft
 Java Edition server on AWS, using **Terraform** for infrastructure and
 **Ansible** for configuration. The entire pipeline runs from a single command
-— no AWS Management Console, no manual SSH.
-
+no AWS Management Console, no manual SSH.
+ 
 CS 312 System Administration — Course Project Part 2
 
 ## Background
@@ -192,5 +192,5 @@ reports its version, MOTD, and player count.
 - [systemd.service documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html)
 - [Minecraft server download (Mojang)](https://www.minecraft.net/en-us/download/server)
 - [Minecraft Wiki — Setting up a server](https://minecraft.wiki/w/Tutorial:Setting_up_a_Java_Edition_server)
-- [GNU screen manual](https://www.gnu.org/software/screen/manual/) (console injection for graceful stop)
+- [GNU screen manual](https://www.gnu.org/software/screen/manual/) 
 
