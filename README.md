@@ -1,18 +1,18 @@
 # Minecraft Server on AWS — Infrastructure as Code
 
-Fully automated provisioning, configuration, and deployment of a Minecraft
+Fully automated configuration, and deployment of a Minecraft
 Java Edition server on AWS, using **Terraform** for infrastructure and
 **Ansible** for configuration. The entire pipeline runs from a single command
 — no AWS Management Console, no manual SSH.
 
-CS 312 System Administration — Course Project Part 2 (Oregon State University)
+CS 312 System Administration — Course Project Part 2
 
 ## Background
 
 In Course Project Part 1, the Minecraft server was deployed manually: clicking
 through the AWS Console, SSHing into the instance, and installing everything
 by hand. That works once, but it does not scale, is not reproducible, and the
-documentation goes stale the moment anything changes.
+documentation goes the moment anything changes.
 
 This project replaces the manual process with Infrastructure as Code:
 
@@ -52,7 +52,7 @@ flowchart LR
     M --> N[Verify with nmap from local machine]
 ```
 
-In words: Terraform creates the network and the instance, then writes the
+Terraform creates the network and the instance, then writes the
 instance's public IP into the Ansible inventory. The deploy script waits until
 SSH answers, then Ansible installs and starts the Minecraft service. The
 playbook's final task blocks until port 25565 is listening, so when the script
@@ -70,7 +70,6 @@ prints "complete," the server is genuinely joinable.
 
 On macOS: `brew install awscli ansible nmap` and
 `brew tap hashicorp/tap && brew install hashicorp/tap/terraform`.
-Windows users should run everything inside WSL (Ubuntu).
 
 ### Credentials
 
@@ -86,7 +85,7 @@ This project targets an **AWS Academy Learner Lab** account:
    region = us-east-1
 ```
 
-4. Verify: `aws sts get-caller-identity` should print your account.
+4. `aws sts get-caller-identity` should print your account.
 
 > **Note:** Learner Lab credentials expire when the session ends. If Terraform
 > reports an authentication error, re-copy fresh credentials.
@@ -140,7 +139,7 @@ world on first boot. The script ends by printing the verification command.
 
 ### Verify
 
-From your local machine (replace the IP with the one the script printed):
+From your local machine replace the IP with the one the script printed:
 
 ```bash
 nmap -sV -Pn -p T:25565 <instance_public_ip>
@@ -152,7 +151,7 @@ Expected output includes the service banner, for example:
 25565/tcp open  minecraft Minecraft 26.1.2 (... Users: 0/20)
 ```
 
-### Verify auto-restart (optional)
+### Verify auto-restart 
 
 ```bash
 aws ec2 reboot-instances --instance-ids $(terraform -chdir=terraform output -raw instance_id)
@@ -162,7 +161,7 @@ aws ec2 reboot-instances --instance-ids $(terraform -chdir=terraform output -raw
 The port reopens without any manual intervention, proving the systemd
 auto-start works.
 
-### Re-running is safe (idempotency)
+### Re-running
 
 Both tools converge on the declared state instead of redoing work:
 `terraform apply` on unchanged config reports nothing to do, and a second
@@ -183,7 +182,7 @@ Deletes all 11 AWS resources (including the world data on the instance's disk).
 2. Open **Minecraft Java Edition** (client version 26.1.2 to match the server).
 3. **Multiplayer → Add Server**, paste the public IP, join.
 
-No Minecraft client? The `nmap` command above confirms the server is up and
+The `nmap` command above confirms the server is up and
 reports its version, MOTD, and player count.
 
 ## Resources / Sources
